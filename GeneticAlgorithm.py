@@ -34,7 +34,7 @@ def selectIndividual(fitnesses, entireFitness, individuals):
         sum += checkFitness(fitnesses,index,entireFitness)
     return index
 
-#fitness function -(value-optimum)^2
+#fitness function -(value-optimum)^2 for calculating initial fitness
 def calculateFitness(value, optimum):
     return -1*((value-optimum)**2)
 
