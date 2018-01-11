@@ -10,17 +10,18 @@ fitnesses = [int]*individuals
 maxFitness = 0
 fitnessThreshold = -6
 optimum = 170 #binary 10101010
+optimumRandom = random.randint(100,256);
 
 #TODO Code optimization, check logic of selection methode again!
 
 #generates random numbers, converts them into binary strings
 #and calculates their fitness
-def randomGenes(individuals,optimum):
+def randomGenes(individuals,optimumRandom):
     genes = [""]*individuals
     for i in range(individuals):
         number = random.randint(0, 256)
         genes[i] = "{0:08b}".format(number)
-        fitnesses[i] = calculateFitness(number,optimum)
+        fitnesses[i] = calculateFitness(number,optimumRandom)
     return genes
 
 #just like in the pseudocode
@@ -34,9 +35,9 @@ def selectIndividual(fitnesses, entireFitness, individuals):
         sum += checkFitness(fitnesses,index,entireFitness)
     return index
 
-#fitness function -(value-optimum)^2 for calculating initial fitness
-def calculateFitness(value, optimum):
-    return -1*((value-optimum)**2)
+#fitness function -(value-optimum)^2
+def calculateFitness(value, optimumRandom):
+    return -1*((value-optimumRandom)**2)
 
 #selects individuals and adds them to a new generation
 def selection():
@@ -49,7 +50,7 @@ def selection():
 
 #checks fitness compared to all other binary strings
 def checkFitness(fitnesses, individual, entireFitness):
-    return fitnesses[individual]/entireFitness
+    return fitnesses[individual]/float(entireFitness)
 
 #adds all fitneses up
 def getEntireFitness(population, fitnesses):
@@ -80,8 +81,12 @@ def crossover():
 
 #flips random bits of the binary strings in the new generation
 def mutation():
+    global individuals;
+    global maxFitness;
+    global fitnesses;
     for i in range(mutationRate):
-        candidate = "{0:08b}".format(newGeneration[i])
+
+        candidate = "{0:08b}".format(newGeneration[selectIndividual(fitnesses, maxFitness, individuals)])
         #print("CANDIDATE ",candidate)
         randomBit = random.randint(0,7)
         #print("RANDOMBIT ",randomBit)
@@ -104,25 +109,31 @@ def updatePopulation():
         population.remove(population[worst])
         population.append("{0:08b}".format(newGeneration[i]))
         fitnesses.remove(min(fitnesses))
-        fitnesses.append(calculateFitness(newGeneration[i],optimum))
+        fitnesses.append(calculateFitness(newGeneration[i],optimumRandom))
     newGeneration.clear()
 
 
 if __name__ == '__main__':
-    population = randomGenes(individuals,optimum)
-
+    population = randomGenes(individuals,optimumRandom)
+    tries = 0
+    oldFitness = 0
     maxFitness = getEntireFitness(population, fitnesses)
-    print("START FITNESS:", maxFitness,"OPTIMUM:","{0:08b}".format(optimum))
+    print("START FITNESS:", maxFitness,"OPTIMUM:","{0:08b}".format(optimumRandom))
     print("START POPULATION:",population)
     print()
 
-    while maxFitness < fitnessThreshold:
+    while maxFitness < fitnessThreshold and tries < 100:
         selection()
         crossover()
         mutation()
         updatePopulation()
         maxFitness = getEntireFitness(population,fitnesses)
         print("CURRENT FITNESS:",maxFitness," ",population)
+        if(oldFitness < maxFitness):
+            tries = 0
+            oldFitness = maxFitness
+        else:
+            tries+=1
 
     print()
     print("CURRENT FITNESS:",maxFitness)
